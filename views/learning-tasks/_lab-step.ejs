@@ -1,0 +1,11 @@
+<li class="lab-step border rounded p-3 mb-2">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <span class="fw-medium small" data-step-label>Step <%= number %></span>
+    <div class="btn-group btn-group-sm">
+      <button type="button" class="btn btn-outline-secondary" data-move-step="up" aria-label="Move step up">&uarr;</button>
+      <button type="button" class="btn btn-outline-secondary" data-move-step="down" aria-label="Move step down">&darr;</button>
+      <button type="button" class="btn btn-outline-danger" data-remove-lab-step>Remove</button>
+    </div>
+  </div>
+  <textarea class="form-control" name="instructions[]" rows="3" aria-label="Instruction"><%= content %></textarea>
+</li>

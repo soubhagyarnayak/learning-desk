@@ -1,0 +1,41 @@
+<%- include('../partials/header', { title }) %>
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/learning-plans">Learning Plans</a></li>
+    <li class="breadcrumb-item"><a href="/learning-plans/<%= plan.id %>"><%= plan.title %></a></li>
+    <li class="breadcrumb-item active" aria-current="page"><%= title %></li>
+  </ol>
+</nav>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h1 class="h3 mb-4"><%= title %></h1>
+
+    <% if (error) { %>
+      <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+
+    <form method="post" action="<%= action %>" class="card card-body shadow-sm">
+      <div class="mb-3">
+        <label for="title" class="form-label">Title</label>
+        <input type="text" class="form-control" id="title" name="title" maxlength="255" required
+               value="<%= values.title %>">
+      </div>
+
+      <div class="mb-3">
+        <label for="objective" class="form-label">Objective</label>
+        <textarea class="form-control" id="objective" name="objective" rows="4" required><%= values.objective %></textarea>
+      </div>
+
+      <p class="form-text mb-4">The expected duration in days is calculated from the section's tasks.</p>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="<%= cancelUrl %>" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

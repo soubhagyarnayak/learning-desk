@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+
+# Uploaded lecture notes and readings
+uploads/
+
+# Database certificates
+ca.pem
+*.pem

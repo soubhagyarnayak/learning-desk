@@ -1,0 +1,138 @@
+<%- include('../partials/header', { title }) %>
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/learning-plans">Learning Plans</a></li>
+    <li class="breadcrumb-item"><a href="/learning-plans/<%= plan.id %>"><%= plan.title %></a></li>
+    <li class="breadcrumb-item"><a href="<%= cancelUrl %>"><%= section.title %></a></li>
+    <li class="breadcrumb-item active" aria-current="page"><%= title %></li>
+  </ol>
+</nav>
+
+<% const hasContent = values.type === TaskType.LECTURE_NOTE || values.type === TaskType.READING_ASSIGNMENT; %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <h1 class="h3 mb-4"><%= title %></h1>
+
+    <% if (error) { %>
+      <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+
+    <form method="post" action="<%= action %>" enctype="multipart/form-data" class="card card-body shadow-sm">
+      <input type="hidden" name="type" value="<%= values.type %>">
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-8">
+          <label for="title" class="form-label">Title</label>
+          <input type="text" class="form-control" id="title" name="title" maxlength="255" required
+                 value="<%= values.title %>">
+        </div>
+        <div class="col-md-4">
+          <label for="expectedDurationHours" class="form-label">Expected duration (hours)</label>
+          <input type="number" class="form-control" id="expectedDurationHours" name="expectedDurationHours"
+                 min="0.01" max="9999.99" step="0.01" required value="<%= values.expectedDurationHours %>">
+          <div class="form-text"><%= formatHours(hoursPerDay) %> hours = 1 study day</div>
+        </div>
+      </div>
+
+      <% if (hasContent) { %>
+        <div class="mb-3">
+          <label for="contentType" class="form-label">Content</label>
+          <select class="form-select" id="contentType" name="contentType" data-content-type-select>
+            <% Object.entries(ContentTypeLabel).forEach(([value, label]) => { %>
+              <option value="<%= value %>" <%= values.contentType === value ? 'selected' : '' %>><%= label %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="mb-3" data-show-for="pdf markdown text">
+          <label for="file" class="form-label">Upload file</label>
+          <input type="file" class="form-control" id="file" name="file" accept=".pdf,.md,.markdown,.txt">
+          <div class="form-text">
+            PDF: .pdf · Markdown: .md or .markdown · Text: .txt (max 20 MB).
+            <% if (values.existingFilePath) { %>
+              Current file: <a href="/<%= values.existingFilePath %>" target="_blank">open</a>.
+              Leave empty to keep it.
+            <% } %>
+          </div>
+        </div>
+
+        <div class="mb-3" data-show-for="markdown text">
+          <label for="body" class="form-label">Or type the content</label>
+          <textarea class="form-control font-monospace" id="body" name="body" rows="10"><%= values.body %></textarea>
+          <div class="form-text">Used when no file is uploaded. Typed text replaces a previously uploaded file.</div>
+        </div>
+
+        <div class="mb-3" data-show-for="url">
+          <label for="url" class="form-label">External URL</label>
+          <input type="url" class="form-control" id="url" name="url" placeholder="https://" value="<%= values.url %>">
+        </div>
+      <% } %>
+
+      <% if (values.type === TaskType.LECTURE_VIDEO) { %>
+        <div class="mb-3">
+          <label for="url" class="form-label">Video URL</label>
+          <input type="url" class="form-control" id="url" name="url" placeholder="https://" required
+                 value="<%= values.url %>">
+        </div>
+      <% } %>
+
+      <% if (values.type === TaskType.CODING_ASSIGNMENT || values.type === TaskType.WRITING_ASSIGNMENT) { %>
+        <div class="mb-3">
+          <label for="question" class="form-label">Question</label>
+          <textarea class="form-control" id="question" name="question" rows="6" required><%= values.question %></textarea>
+        </div>
+      <% } %>
+
+      <% if (values.type === TaskType.WRITING_ASSIGNMENT) { %>
+        <div class="mb-3">
+          <label for="evaluationInstructions" class="form-label">Evaluation instructions</label>
+          <textarea class="form-control" id="evaluationInstructions" name="evaluationInstructions" rows="6"
+                    required><%= values.evaluationInstructions %></textarea>
+        </div>
+      <% } %>
+
+      <% if (values.type === TaskType.CODING_ASSIGNMENT) { %>
+        <% const testCases = values.testCases.length ? values.testCases : [{ input: '', expectedOutput: '', isHidden: false }]; %>
+        <fieldset class="mb-3">
+          <legend class="form-label fs-6">Test cases</legend>
+          <div data-test-cases>
+            <% testCases.forEach((testCase, index) => { %>
+              <%- include('_test-case', { index, testCase }) %>
+            <% }) %>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-primary" data-add-test-case>+ Add test case</button>
+          <template id="test-case-template">
+            <%- include('_test-case', { index: '__INDEX__', testCase: { input: '', expectedOutput: '', isHidden: false } }) %>
+          </template>
+        </fieldset>
+      <% } %>
+
+      <% if (values.type === TaskType.LAB_ASSIGNMENT) { %>
+        <% const steps = values.instructions.length ? values.instructions : ['']; %>
+        <fieldset class="mb-3">
+          <legend class="form-label fs-6 mb-0">Instructions</legend>
+          <p class="form-text mt-0">The learner carries out these steps in order. Use the arrows to reorder them.</p>
+          <ol class="list-unstyled mb-2" data-lab-steps>
+            <% steps.forEach((content, index) => { %>
+              <%- include('_lab-step', { content, number: index + 1 }) %>
+            <% }) %>
+          </ol>
+          <button type="button" class="btn btn-sm btn-outline-primary" data-add-lab-step>+ Add step</button>
+          <template id="lab-step-template">
+            <%- include('_lab-step', { content: '', number: '' }) %>
+          </template>
+        </fieldset>
+      <% } %>
+
+      <div class="d-flex gap-2 mt-2">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="<%= cancelUrl %>" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/js/task-form.js"></script>
+<%- include('../partials/footer') %>

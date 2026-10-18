@@ -1,0 +1,118 @@
+<%- include('../partials/header', { title }) %>
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/learning-plans">Learning Plans</a></li>
+    <li class="breadcrumb-item active" aria-current="page"><%= plan.title %></li>
+  </ol>
+</nav>
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <h1 class="h3 mb-1"><%= plan.title %></h1>
+    <p class="text-body-secondary mb-2"><%= plan.objective %></p>
+    <span class="badge text-bg-primary"><%= plural(plan.expectedDurationWeeks, 'week') %></span>
+    <span class="small text-body-secondary ms-1">
+      <%= plural(plan.totalSectionDays, 'study day') %> across <%= plural(plan.sections.length, 'section') %>
+      · <%= formatHours(hoursPerDay) %> h per study day
+    </span>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="/learning-plans/<%= plan.id %>/edit" class="btn btn-outline-secondary">Edit plan</a>
+    <a href="/learning-plans/<%= plan.id %>/sections/new" class="btn btn-primary">+ Add section</a>
+  </div>
+</div>
+
+<% if (plan.sections.length === 0) { %>
+  <div class="alert alert-info">
+    This plan has no sections yet.
+    <a href="/learning-plans/<%= plan.id %>/sections/new" class="alert-link">Add the first section.</a>
+  </div>
+<% } %>
+
+<% plan.sections.forEach((section, index) => { %>
+  <% const sectionUrl = `/learning-plans/${plan.id}/sections/${section.id}`; %>
+  <div class="card shadow-sm mb-4" id="section-<%= section.id %>">
+    <div class="card-header bg-body d-flex flex-wrap justify-content-between align-items-start gap-3 py-3">
+      <div>
+        <h2 class="h5 mb-1"><%= index + 1 %>. <%= section.title %></h2>
+        <p class="small text-body-secondary mb-2"><%= section.objective %></p>
+        <span class="badge text-bg-secondary"><%= plural(section.expectedDurationDays, 'day') %></span>
+        <span class="small text-body-secondary ms-1"><%= formatHours(section.totalTaskHours) %> h of tasks</span>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <div class="dropdown">
+          <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            + Add task
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <% Object.entries(TaskTypeLabel).forEach(([type, label]) => { %>
+              <li><a class="dropdown-item" href="<%= sectionUrl %>/tasks/new?type=<%= type %>"><%= label %></a></li>
+            <% }) %>
+          </ul>
+        </div>
+        <a href="<%= sectionUrl %>/edit" class="btn btn-sm btn-outline-secondary">Edit section</a>
+        <form method="post" action="<%= sectionUrl %>/delete" class="d-inline"
+              data-confirm="Delete section &quot;<%= section.title %>&quot; and all of its tasks?">
+          <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+
+    <% if (section.tasks.length === 0) { %>
+      <div class="card-body small text-body-secondary">No tasks yet. Use <strong>+ Add task</strong> to add one.</div>
+    <% } else { %>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">Task</th>
+              <th scope="col">Type</th>
+              <th scope="col" class="text-end">Hours</th>
+              <th scope="col" class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% section.tasks.forEach((task) => { %>
+              <tr>
+                <td>
+                  <div class="fw-medium"><%= task.title %></div>
+                  <div class="small text-body-secondary">
+                    <% if (task.type === 'lecture_video') { %>
+                      <a href="<%= task.url %>" target="_blank" rel="noopener noreferrer">Watch video</a>
+                    <% } else if (task.content) { %>
+                      <% if (task.content.url) { %>
+                        <a href="<%= task.content.url %>" target="_blank" rel="noopener noreferrer">Open link</a>
+                      <% } else if (task.content.filePath) { %>
+                        <a href="/<%= task.content.filePath %>" target="_blank">Open file</a>
+                      <% } else { %>
+                        Inline <%= task.content.contentType %> text
+                      <% } %>
+                    <% } else if (task.instructions) { %>
+                      <%= plural(task.instructions.length, 'step') %>
+                    <% } else if (task.testCases) { %>
+                      <%= plural(task.testCases.length, 'test case') %>
+                    <% } else if (task.type === 'writing_assignment') { %>
+                      Has evaluation instructions
+                    <% } %>
+                  </div>
+                </td>
+                <td><span class="badge text-bg-light border"><%= TaskTypeLabel[task.type] %></span></td>
+                <td class="text-end"><%= formatHours(task.expectedDurationHours) %></td>
+                <td class="text-end text-nowrap">
+                  <a href="<%= sectionUrl %>/tasks/<%= task.id %>/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
+                  <form method="post" action="<%= sectionUrl %>/tasks/<%= task.id %>/delete" class="d-inline"
+                        data-confirm="Delete task &quot;<%= task.title %>&quot;?">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+<% }) %>
+
+<%- include('../partials/footer') %>

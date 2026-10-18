@@ -1,0 +1,33 @@
+<%- include('../partials/header', { title }) %>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <h1 class="h3 mb-0">Learning Plans</h1>
+  <a href="/learning-plans/new" class="btn btn-primary">+ Add Learning Plan</a>
+</div>
+
+<% if (plans.length === 0) { %>
+  <div class="alert alert-info">
+    No learning plans yet. <a href="/learning-plans/new" class="alert-link">Create your first one.</a>
+  </div>
+<% } else { %>
+  <div class="list-group shadow-sm">
+    <% plans.forEach((plan) => { %>
+      <div class="list-group-item py-3">
+        <div class="d-flex justify-content-between align-items-start gap-3">
+          <div>
+            <h2 class="h5 mb-1"><a href="/learning-plans/<%= plan.id %>" class="text-decoration-none"><%= plan.title %></a></h2>
+            <p class="mb-2 text-body-secondary"><%= plan.objective %></p>
+            <% if (plan.expectedDurationWeeks > 0) { %>
+              <span class="badge text-bg-secondary"><%= plural(plan.expectedDurationWeeks, 'week') %></span>
+            <% } else { %>
+              <span class="badge text-bg-light border">No tasks yet</span>
+            <% } %>
+          </div>
+          <a href="/learning-plans/<%= plan.id %>/edit" class="btn btn-outline-secondary btn-sm">Edit</a>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('../partials/footer') %>
